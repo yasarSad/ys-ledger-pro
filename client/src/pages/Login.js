@@ -1,28 +1,35 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Typography, TextField, Button, CircularProgress, Box } from '@mui/material';
-import { fetchWithAuth } from '../api/api';
+
 function Login() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [loggedIn, setLoggedIn] = useState(false);
-    const [loading, setLoading] = useState(false); // Changed from true
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const navigate = useNavigate(); // Changed from useHistory
+    const navigate = useNavigate();
 
     useEffect(() => {
-        const authToken = localStorage.getItem('authToken'); // Fixed authToken reference
+        const authToken = localStorage.getItem('authToken');
         if (authToken) {
             setLoggedIn(true);
-            navigate('/dashboard/' + username); // Changed from history.push
+            const storedUsername = localStorage.getItem('username') || username;
+            if (storedUsername) {
+                navigate('/dashboard/' + storedUsername);
+            }
         }
-    }, [username, navigate]);
+    }, [navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
+        setError(null);
+        
         try {
-            const response = await fetchWithAuth(`${process.env.REACT_APP_API_URL}/auth/login`, {
+            // FIXED: Use regular fetch, not fetchWithAuth (no token yet)
+            // FIXED: Use relative URL instead of environment variable
+            const response = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -34,18 +41,29 @@ function Login() {
             });
 
             const result = await response.json();
-            if (response.ok) { // Changed from result.ok
-                const { authToken, username } = result;
+            
+            if (response.ok) {
+                // FIXED: Handle new response format with user object
+                const { authToken, user } = result;
                 localStorage.setItem('authToken', authToken);
-                navigate(`/dashboard/${username}`); // Changed from history.push
-                setLoading(false);
+                
+                // Store user info
+                if (user) {
+                    localStorage.setItem('user', JSON.stringify(user));
+                    localStorage.setItem('username', user.username);
+                    navigate(`/dashboard/${user.username}`);
+                } else {
+                    // Fallback if backend doesn't return user object
+                    localStorage.setItem('username', username);
+                    navigate(`/dashboard/${username}`);
+                }
             } else {
                 setError(result.message || 'Failed to log in');
-                setLoading(false);
             }
         } catch (error) {
             console.error("Error logging in:", error.message);
-            setError(error.message);
+            setError(error.message || 'Network error. Please try again.');
+        } finally {
             setLoading(false);
         }
     };
@@ -70,16 +88,21 @@ function Login() {
                 p: 4,
             }}
         >
-            <Typography variant="h4" gutterBottom> {/* Changed from h1 for better sizing */}
+            <Typography variant="h4" gutterBottom>
                 Please Log In
             </Typography>
             
+            {error && (
+                <Typography color="error" variant="body2" sx={{ mb: 2 }}>
+                    {error}
+                </Typography>
+            )}
 
             <form
                 onSubmit={handleSubmit}
                 style={{
                     display: 'flex',
-                    flexDirection: 'column', // Added for better form layout
+                    flexDirection: 'column',
                     gap: '1rem',
                     maxWidth: '400px',
                     width: '100%',
@@ -91,6 +114,7 @@ function Login() {
                     fullWidth 
                     value={username} 
                     onChange={(e) => setUsername(e.target.value)}
+                    required
                 />
                 <TextField 
                     type="password" 
@@ -99,13 +123,14 @@ function Login() {
                     fullWidth 
                     value={password} 
                     onChange={(e) => setPassword(e.target.value)}
+                    required
                 />
                 <Button 
                     type="submit" 
                     variant="contained" 
                     color="primary" 
                     fullWidth 
-                    disabled={loading} // Changed from loaded
+                    disabled={loading}
                 >
                     {loading ? 'Logging in...' : 'Login'}
                 </Button>

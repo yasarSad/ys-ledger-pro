@@ -24,7 +24,8 @@ function Signup() {
     useEffect(() => {
         const createLinkToken = async () => {
             try {
-                const response = await fetch('api/plaid/create-link-token', {
+                // FIXED: Added leading slash
+                const response = await fetch('/api/plaid/create-link-token', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -90,7 +91,8 @@ function Signup() {
         setLoading(true);
         
         try {
-            const response = await fetch('/api/auth/signup', {
+            // FIXED: Changed to /signup-fill to match backend
+            const response = await fetch('/api/auth/signup-fill', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -107,10 +109,18 @@ function Signup() {
 
             const result = await response.json();
             if (response.ok) {
-                const authToken = result.authToken;
+                // FIXED: Handle new response format with user object
+                const { authToken, user } = result;
                 localStorage.setItem('authToken', authToken);
-                console.log("Successfully logged in");
-                navigate(`/dashboard/${username}`);
+                
+                // Store user info
+                if (user) {
+                    localStorage.setItem('user', JSON.stringify(user));
+                    localStorage.setItem('username', user.username);
+                }
+                
+                console.log("Successfully signed up");
+                navigate(`/dashboard/${user?.username || username}`);
             } else {
                 console.log('Signup failed:', result.message);
                 setError(result.message);

@@ -1,35 +1,40 @@
-import axios from 'axios';
-const API_BASE_URL = process.env.REACT_APP_API_URL;
+// src/api/api.js
+// Centralized API utility for authenticated requests
 
-export const api = axios.create({
-    baseURL: API_BASE_URL,
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
+/**
+ * Fetch wrapper that automatically includes authentication token
+ * @param {string} endpoint - API endpoint (e.g., '/api/users/get-signup')
+ * @param {object} options - Fetch options (method, headers, body, etc.)
+ * @returns {Promise} - Fetch promise
+ */
+export const fetchWithAuth = async (endpoint, options = {}) => {
+  const token = localStorage.getItem('authToken');
+  
+  const defaultHeaders = {
+    'Content-Type': 'application/json',
+  };
+
+  // Add authorization header if token exists
+  if (token) {
+    defaultHeaders.Authorization = `Bearer ${token}`;
+  }
+
+  const config = {
+    ...options,
     headers: {
-        'Content-Type': 'application/json'
+      ...defaultHeaders,
+      ...options.headers,
     },
+  };
 
-});
+  // Handle both absolute and relative URLs
+  const url = endpoint.startsWith('http') 
+    ? endpoint 
+    : `${API_URL}${endpoint}`;
 
-api.interceptors.request.use((config) =>{
-    const authToken = localStorage.getItem('authToken');
-    if(authToken){
-        config.headers.Authorization = `Bearer ${authToken}`;
-    }
-    return config;
-}, (error) =>{
-    return Promise.reject(error);
-});
-
-export const fetchWithAuth = async (url, options={}) => {
-    try{
-        const response = await api({
-            url,
-            method: options.method || 'GET',
-            data: options.body,
-            params: options.params
-        });
-        return response.data;
-    }catch(error){
-        console.error('API failed to be called, error: ', error);
-        throw new Error(error.response?.data?.message || 'API call failed');
-    }
+  return fetch(url, config);
 };
+
+export default fetchWithAuth;
