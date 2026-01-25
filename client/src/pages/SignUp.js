@@ -25,7 +25,7 @@ function Signup() {
         const createLinkToken = async () => {
             try {
                 // FIXED: Added leading slash
-                const response = await fetch('/api/plaid/create-link-token', {
+                const response = await fetch(`${env.REACT_APP_API_URI}/api/plaid/create-link-token`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -43,7 +43,7 @@ function Signup() {
     const PlaidLinkComponent = ({ linkToken }) => {
         const onSuccess = async (public_token, metadata) => {
             try {
-                const response = await fetch(`${env.REACT_APP_API_URL}/api/plaid/exchange-public-token`, {
+                const response = await fetch('/api/plaid/exchange-public-token', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
