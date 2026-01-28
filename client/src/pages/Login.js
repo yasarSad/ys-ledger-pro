@@ -27,9 +27,8 @@ function Login() {
         setError(null);
         
         try {
-            // FIXED: Use regular fetch, not fetchWithAuth (no token yet)
-            // FIXED: Use relative URL instead of environment variable
-            const response = await fetch('/api/auth/login', {
+            // FIXED: Now uses environment variable for backend URL
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
