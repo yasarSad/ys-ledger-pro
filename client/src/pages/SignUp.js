@@ -35,6 +35,7 @@ function Signup() {
                 setLinkToken(link_token);
             } catch (error) {
                 console.error('Error with get link token', error);
+                
             }
         };
         createLinkToken();
@@ -74,6 +75,8 @@ function Signup() {
 
         const { open, ready } = usePlaidLink(config);
 
+        console.log(process.env.REACT_APP_API_URL)
+
         return (
             <Button 
                 onClick={() => open()} 
@@ -87,7 +90,7 @@ function Signup() {
         );
     };
 
-    console.log(process.env.REACT_APP_API_URL)
+   
 
 
     const handleSubmit = async (e) => {
