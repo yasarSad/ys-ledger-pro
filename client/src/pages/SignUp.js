@@ -24,8 +24,8 @@ function Signup() {
     useEffect(() => {
         const createLinkToken = async () => {
             try {
-                // FIXED: Added leading slash
-                const response = await fetch(`${env.REACT_APP_API_URI}/api/plaid/create-link-token`, {
+                // FIXED: Changed from 'env' to 'process.env'
+                const response = await fetch(`${process.env.REACT_APP_API_URL}/api/plaid/create-link-token`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -43,7 +43,8 @@ function Signup() {
     const PlaidLinkComponent = ({ linkToken }) => {
         const onSuccess = async (public_token, metadata) => {
             try {
-                const response = await fetch('/api/plaid/exchange-public-token', {
+                // FIXED: Now uses environment variable for backend URL
+                const response = await fetch(`${process.env.REACT_APP_API_URL}/api/plaid/exchange-public-token`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -91,8 +92,8 @@ function Signup() {
         setLoading(true);
         
         try {
-            // FIXED: Changed to /signup-fill to match backend
-            const response = await fetch('/api/auth/signup-fill', {
+            // FIXED: Now uses environment variable for backend URL
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/auth/signup-fill`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
